@@ -72,8 +72,6 @@ export default function withRspack(
     publicRuntimeConfig: {
       staticFolder: '/static',
     },
-    hostname: '0.0.0.0',
-    port: parseInt(process.env.PORT || '3000', 10),
   }
 
   // Merge configurations with user provided config
@@ -85,7 +83,6 @@ export default function withRspack(
   // Merge RSPack specific configurations
   return {
     ...mergedConfig,
-    webpack: undefined, // Disable webpack
     experimental: {
       ...mergedConfig.experimental,
       serverActions: {
@@ -93,51 +90,65 @@ export default function withRspack(
         allowedOrigins: ['*'],
       },
     },
-    // Enhanced RSPack configurations
-    rspack: {
-      ...finalOptions.rspackConfig,
-      optimization: {
-        minimize: process.env.NODE_ENV === 'production',
-        minimizer:
-          process.env.NODE_ENV === 'production'
-            ? [
-                {
-                  pluginName: 'SwcMinifyPlugin',
-                },
-              ]
-            : [],
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendors: {
-              test: /[\\/]node_modules[\\/]/,
-              priority: -10,
-              reuseExistingChunk: true,
-            },
-            default: {
-              minChunks: 2,
-              priority: -20,
-              reuseExistingChunk: true,
-            },
+    // Enhanced RSPack configurations using webpack config
+    webpack: (config) => {
+      // Convert RSPack config to webpack config format
+      return {
+        ...config,
+        cache: {
+          type: 'filesystem',
+          buildDependencies: {
+            config: [__filename],
           },
+          cacheDirectory: '.next/cache/rspack',
+          compression: 'gzip',
+          version: '1.0.0',
+          store: 'pack',
+          memoryCacheUnaffected: true,
         },
-        ...finalOptions.rspackConfig?.optimization,
-      },
-      module: {
-        rules: [
-          {
-            test: /\.(js|jsx|ts|tsx)$/,
-            exclude: /node_modules/,
-            use: [
-              {
-                loader: 'builtin:swc-loader',
-                options: finalOptions.swcOptions,
+        optimization: {
+          minimize: process.env.NODE_ENV === 'production',
+          minimizer:
+            process.env.NODE_ENV === 'production'
+              ? [
+                  {
+                    pluginName: 'SwcMinifyPlugin',
+                  },
+                ]
+              : [],
+          splitChunks: {
+            chunks: 'all',
+            cacheGroups: {
+              vendors: {
+                test: /[\\/]node_modules[\\/]/,
+                priority: -10,
+                reuseExistingChunk: true,
               },
-            ],
+              default: {
+                minChunks: 2,
+                priority: -20,
+                reuseExistingChunk: true,
+              },
+            },
           },
-          ...(finalOptions.rspackConfig?.module?.rules || []),
-        ],
-      },
+          ...finalOptions.rspackConfig?.optimization,
+        },
+        module: {
+          rules: [
+            {
+              test: /\.(js|jsx|ts|tsx)$/,
+              exclude: /node_modules/,
+              use: [
+                {
+                  loader: 'builtin:swc-loader',
+                  options: finalOptions.swcOptions,
+                },
+              ],
+            },
+            ...(finalOptions.rspackConfig?.module?.rules || []),
+          ],
+        },
+      }
     },
   }
 }

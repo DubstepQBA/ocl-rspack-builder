@@ -12,7 +12,6 @@ An enhanced RSPack builder for Next.js 14+ that provides improved build performa
 - 🎯 Production optimizations
 - 🔄 Hot Module Replacement
 - 🔒 Secure defaults
-- 🌐 Docker-ready configuration
 
 ## Installation
 
@@ -46,7 +45,9 @@ const { default: withRspack } = require('@dubstepqba/rspack-builder')
 const nextConfig = withRspack(
   {
     // Override default Next.js configurations
-    port: 4000,
+    publicRuntimeConfig: {
+      staticFolder: '/custom-static',
+    },
     // Add your custom Next.js config
   },
   {
@@ -72,10 +73,20 @@ module.exports = nextConfig
   },
   publicRuntimeConfig: {
     staticFolder: '/static',
-  },
-  hostname: '0.0.0.0',          // Listen on all network interfaces
-  port: 3000,                   // Default port (can be overridden by PORT env variable)
+  }
 }
+```
+
+### Server Configuration
+
+For server configuration like port and hostname, use the Next.js CLI or environment variables:
+
+```bash
+# Using CLI
+next dev -p 4000 -H 0.0.0.0
+
+# Or using environment variables
+PORT=4000 HOST=0.0.0.0 next dev
 ```
 
 ### RSPack Options
@@ -119,7 +130,6 @@ The builder includes several production optimizations:
 - Module federation support
 - Performance hints and budgets
 - Secure defaults (disabled powered-by header, etags)
-- Docker-ready network configuration
 
 ## Development Mode Features
 
@@ -129,18 +139,31 @@ The builder includes several production optimizations:
 - HMR optimization
 - Convenient development defaults
 
-## Docker Support
+## Server Configuration
 
-The default configuration is Docker-ready with:
+To configure the server in development or production:
 
-- Listening on all network interfaces (`0.0.0.0`)
-- Configurable port via environment variable
-- Secure defaults for production
-
-Example Docker usage:
+1. **Using Next.js CLI**:
 
 ```bash
-docker run -p 3000:3000 -e PORT=3000 your-next-app
+next dev -p 3000 -H 0.0.0.0
+```
+
+2. **Using Environment Variables**:
+
+```bash
+PORT=3000 HOST=0.0.0.0 next dev
+```
+
+3. **Using start script in package.json**:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev -p 3000 -H 0.0.0.0",
+    "start": "next start -p 3000 -H 0.0.0.0"
+  }
+}
 ```
 
 ## TypeScript Support
@@ -156,7 +179,8 @@ The builder includes built-in TypeScript support with zero configuration needed 
 
 The following environment variables are supported:
 
-- `PORT`: Override default port (3000)
+- `PORT`: Override default port (via Next.js CLI or env)
+- `HOST`: Set server hostname (via Next.js CLI or env)
 - `NODE_ENV`: Determines optimization level
 - `MY_SECRET`: Server-side secret (via serverRuntimeConfig)
 
