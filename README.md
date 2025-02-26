@@ -1,17 +1,15 @@
 # Next.js RSPack Builder
 
-An enhanced RSPack builder for Next.js 14+ that provides improved build performance and configuration options.
+A lightweight RSPack builder for Next.js 14+ that provides optimized build performance with minimal configuration.
 
 ## Features
 
-- 🚀 Optimized build performance
-- ⚡ Fast refresh support
-- 🛠 Customizable configuration
-- 📦 TypeScript support
-- 🔧 Server Components & Actions support
-- 🎯 Production optimizations
-- 🔄 Hot Module Replacement
-- 🔒 Secure defaults
+- 🚀 Optimized build performance with RSPack
+- 🎯 Production-ready optimizations
+- 📦 Zero-config TypeScript support
+- 🛠 Simple and maintainable configuration
+- 🔄 Automatic chunk splitting
+- ⚡ Next.js native optimizations
 
 ## Installation
 
@@ -25,7 +23,7 @@ pnpm add @dubstepqba/rspack-builder
 
 ## Usage
 
-### Basic Usage (With Default Configuration)
+### Basic Usage
 
 ```javascript
 const { default: withRspack } = require('@dubstepqba/rspack-builder')
@@ -44,172 +42,272 @@ const { default: withRspack } = require('@dubstepqba/rspack-builder')
 /** @type {import('next').NextConfig} */
 const nextConfig = withRspack(
   {
-    // Override default Next.js configurations
-    publicRuntimeConfig: {
-      staticFolder: '/custom-static',
-    },
-    // Add your custom Next.js config
+    // Your Next.js config
   },
   {
-    // RSPack specific options
-    enableReactRefresh: true,
-    experimentalFeatures: true,
+    rspackConfig: {
+      // RSPack specific options
+      optimization: {
+        minimize: true,
+        minimizer: ['...'],
+        splitChunks: {
+          chunks: 'all',
+          minSize: 20000,
+          maxSize: 0,
+          minChunks: 1,
+          maxAsyncRequests: 30,
+          maxInitialRequests: 30,
+          cacheGroups: {
+            defaultVendors: {
+              test: /[\\/]node_modules[\\/]/,
+              priority: -10,
+              reuseExistingChunk: true,
+            },
+            default: {
+              minChunks: 2,
+              priority: -20,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      },
+      performance: {
+        maxAssetSize: 250000,
+        maxEntrypointSize: 250000,
+        hints: 'warning',
+      },
+      cache: {
+        type: 'filesystem',
+        buildDependencies: {
+          config: ['./next.config.js'],
+        },
+        name: 'development-cache',
+      },
+      experiments: {
+        asyncWebAssembly: true,
+        layers: true,
+      },
+    },
   }
 )
 
 module.exports = nextConfig
 ```
 
-## Default Configurations
-
-### Next.js Default Config
+### Optimized Configuration Example
 
 ```javascript
-{
-  poweredByHeader: false,        // Removes X-Powered-By header
-  generateEtags: false,         // Disables ETag generation
-  serverRuntimeConfig: {
-    mySecret: process.env.MY_SECRET,
+const { default: withRspack } = require('@dubstepqba/rspack-builder')
+
+/** @type {import('next').NextConfig} */
+const nextConfig = withRspack(
+  {
+    // Next.js config
+    poweredByHeader: false,
+    compress: true,
   },
-  publicRuntimeConfig: {
-    staticFolder: '/static',
+  {
+    rspackConfig: {
+      optimization: {
+        // Habilitar minificación en producción
+        minimize: process.env.NODE_ENV === 'production',
+        // Configuración de división de chunks optimizada
+        splitChunks: {
+          chunks: 'all',
+          minSize: 20000,
+          maxSize: 100000,
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+        // Reducir el tamaño del bundle
+        removeAvailableModules: true,
+        removeEmptyChunks: true,
+        mergeDuplicateChunks: true,
+      },
+      performance: {
+        // Optimizar tamaños de assets
+        maxAssetSize: 250000,
+        maxEntrypointSize: 250000,
+        hints: process.env.NODE_ENV === 'production' ? 'warning' : false,
+      },
+      cache: {
+        // Habilitar caché para builds más rápidos
+        type: 'filesystem',
+        buildDependencies: {
+          config: [__filename],
+        },
+        compression: 'gzip',
+      },
+    },
   }
-}
+)
+
+module.exports = nextConfig
 ```
 
-### Server Configuration
+### Explicación de la Configuración Optimizada
 
-For server configuration like port and hostname, use the Next.js CLI or environment variables:
+1. **Optimización de Chunks**:
 
-```bash
-# Using CLI
-next dev -p 4000 -H 0.0.0.0
+   - `splitChunks.chunks: 'all'`: Divide todos los chunks para mejor caching
+   - `minSize/maxSize`: Controla el tamaño de los chunks para mejor rendimiento
+   - `cacheGroups`: Agrupa módulos de node_modules en un chunk separado
 
-# Or using environment variables
-PORT=4000 HOST=0.0.0.0 next dev
-```
+2. **Optimización de Tamaño**:
+
+   - `minimize`: Minificación automática en producción
+   - `removeAvailableModules`: Elimina módulos innecesarios
+   - `removeEmptyChunks`: Elimina chunks vacíos
+   - `mergeDuplicateChunks`: Combina chunks duplicados
+
+3. **Caché**:
+
+   - `type: 'filesystem'`: Caché persistente para builds más rápidos
+   - `compression: 'gzip'`: Compresión de caché para ahorrar espacio
+
+4. **Performance**:
+   - Límites de tamaño optimizados para assets
+   - Advertencias solo en producción
+
+## Configuration Options
 
 ### RSPack Options
 
-| Option                 | Type      | Default           | Description                         |
-| ---------------------- | --------- | ----------------- | ----------------------------------- |
-| `enableReactRefresh`   | `boolean` | `true`            | Enable/disable React Fast Refresh   |
-| `optimizationLevel`    | `string`  | Based on NODE_ENV | Build optimization level            |
-| `experimentalFeatures` | `boolean` | `false`           | Enable experimental RSPack features |
-| `rspackConfig`         | `object`  | `{}`              | Custom RSPack configuration         |
-| `swcOptions`           | `object`  | See below         | SWC compiler options                |
+| Option         | Type     | Default | Description                 |
+| -------------- | -------- | ------- | --------------------------- |
+| `rspackConfig` | `object` | `{}`    | Custom RSPack configuration |
 
-### Default SWC Options
+## RSPack Configuration Options
+
+### Optimization Options
+
+| Option                      | Type              | Description                    |
+| --------------------------- | ----------------- | ------------------------------ |
+| `optimization.minimize`     | `boolean`         | Enable/disable minification    |
+| `optimization.minimizer`    | `string[]`        | List of minimizer plugins      |
+| `optimization.splitChunks`  | `object`          | Configure chunk splitting      |
+| `optimization.runtimeChunk` | `boolean\|object` | Control runtime chunk creation |
+
+### Performance Options
+
+| Option                          | Type                        | Description                                      |
+| ------------------------------- | --------------------------- | ------------------------------------------------ |
+| `performance.maxAssetSize`      | `number`                    | Maximum allowed size for assets (in bytes)       |
+| `performance.maxEntrypointSize` | `number`                    | Maximum allowed size for entry points (in bytes) |
+| `performance.hints`             | `'warning'\|'error'\|false` | Performance hints level                          |
+
+### Cache Options
+
+| Option                    | Type                     | Description                   |
+| ------------------------- | ------------------------ | ----------------------------- |
+| `cache.type`              | `'memory'\|'filesystem'` | Cache type                    |
+| `cache.buildDependencies` | `object`                 | Additional build dependencies |
+| `cache.name`              | `string`                 | Cache name for isolation      |
+| `cache.version`           | `string`                 | Cache version                 |
+
+### Experiments
+
+| Option                         | Type      | Description                         |
+| ------------------------------ | --------- | ----------------------------------- |
+| `experiments.asyncWebAssembly` | `boolean` | Enable WebAssembly as async modules |
+| `experiments.layers`           | `boolean` | Enable module layer support         |
+| `experiments.topLevelAwait`    | `boolean` | Enable top-level await              |
+
+### Module Rules
 
 ```javascript
-{
-  jsc: {
-    parser: {
-      syntax: 'typescript',
-      tsx: true,
-    },
-    transform: {
-      react: {
-        runtime: 'automatic',
-        development: process.env.NODE_ENV !== 'production',
-        refresh: true,
+rspackConfig: {
+  module: {
+    rules: [
+      {
+        test: /\.custom$/, // Regex para archivos
+        use: ['custom-loader'],
+        exclude: /node_modules/,
       },
+    ],
+  },
+}
+```
+
+### Resolve Options
+
+```javascript
+rspackConfig: {
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    alias: {
+      '@components': './src/components',
+    },
+    fallback: {
+      // Polyfills para módulos de Node
+      "path": require.resolve("path-browserify"),
     },
   },
-  minify: process.env.NODE_ENV === 'production',
+}
+```
+
+### DevServer Options (Development)
+
+```javascript
+rspackConfig: {
+  devServer: {
+    hot: true,
+    port: 3000,
+    historyApiFallback: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+  },
 }
 ```
 
 ## Production Optimizations
 
-The builder includes several production optimizations:
+The builder includes essential production optimizations:
 
-- Code splitting and chunk optimization
-- Tree shaking
-- Minification using SWC
-- Module federation support
-- Performance hints and budgets
-- Secure defaults (disabled powered-by header, etags)
+- Automatic code splitting
+- Production minification
+- Chunk optimization
+- Next.js native optimizations
 
-## Development Mode Features
+## Development Mode
 
-- Fast Refresh enabled by default
-- Enhanced error reporting
-- Source maps support
-- HMR optimization
-- Convenient development defaults
+Development mode includes:
 
-## Server Configuration
-
-To configure the server in development or production:
-
-1. **Using Next.js CLI**:
-
-```bash
-next dev -p 3000 -H 0.0.0.0
-```
-
-2. **Using Environment Variables**:
-
-```bash
-PORT=3000 HOST=0.0.0.0 next dev
-```
-
-3. **Using start script in package.json**:
-
-```json
-{
-  "scripts": {
-    "dev": "next dev -p 3000 -H 0.0.0.0",
-    "start": "next start -p 3000 -H 0.0.0.0"
-  }
-}
-```
-
-## TypeScript Support
-
-The builder includes built-in TypeScript support with zero configuration needed for:
-
-- TypeScript/TSX files
-- Type checking
-- Path aliases
-- Declaration files
+- Fast Refresh support
+- Source maps
+- Development optimizations
 
 ## Environment Variables
 
 The following environment variables are supported:
 
-- `PORT`: Override default port (via Next.js CLI or env)
-- `HOST`: Set server hostname (via Next.js CLI or env)
 - `NODE_ENV`: Determines optimization level
-- `MY_SECRET`: Server-side secret (via serverRuntimeConfig)
+- Standard Next.js environment variables
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Build failures**
+1. **Build Performance**
 
-   - Ensure all peer dependencies are installed
-   - Check Node.js version (>=16.0.0 required)
-   - Verify TypeScript configuration
+   - Ensure you're using the latest version
+   - Check your Node.js version (>=16.0.0 required)
 
-2. **Performance Issues**
-   - Check optimization settings
-   - Review chunk splitting configuration
-   - Monitor memory usage
-
-### Debug Mode
-
-Set `DEBUG=rspack-builder:*` environment variable for detailed logging:
-
-```bash
-DEBUG=rspack-builder:* next dev
-```
+2. **Docker Builds**
+   - The builder is optimized for Docker environments
+   - Uses minimal configuration to prevent memory issues
 
 ## Contributing
 
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
@@ -217,9 +315,9 @@ MIT
 
 ## Support
 
-- GitHub Issues: [Report a bug](https://github.com/DubstepQBA/rspack-builder/issues)
-- LinkedIn: [Javier Alfaro](https://www.linkedin.com/in/javieralfaroarmas/)
+- GitHub Issues: [Report a bug](https://github.com/DubstepQBA/ocl-rspack-builder/issues)
+- Author: [Javier Alfaro](https://github.com/DubstepQBA)
 
 ## Credits
 
-This builder is built on top of [RSPack](https://www.rspack.dev/) and [Next.js](https://nextjs.org/).
+Built with [RSPack](https://www.rspack.dev/) and [Next.js](https://nextjs.org/)
