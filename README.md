@@ -1,6 +1,6 @@
-# Next.js RSPack Plugin
+# Next.js RSPack Builder
 
-An enhanced RSPack plugin for Next.js 14+ that provides improved build performance and configuration options.
+An enhanced RSPack builder for Next.js 14+ that provides improved build performance and configuration options.
 
 ## Features
 
@@ -15,7 +15,11 @@ An enhanced RSPack plugin for Next.js 14+ that provides improved build performan
 ## Installation
 
 ```bash
-npm install  @ocl/rspack-builder
+npm install @dubstepqba/rspack-builder
+# or
+yarn add @dubstepqba/rspack-builder
+# or
+pnpm add @dubstepqba/rspack-builder
 ```
 
 ## Usage
@@ -23,19 +27,14 @@ npm install  @ocl/rspack-builder
 In your `next.config.js`:
 
 ```javascript
-const withRspack = require('@ocl/rspack-builder')
+const { default: withRspack } = require('@dubstepqba/rspack-builder')
 
-module.exports = withRspack(
-  {
-    // Your Next.js config here
-  },
-  {
-    // RSPack plugin options (optional)
-    enableReactRefresh: true,
-    optimizationLevel: 'production',
-    experimentalFeatures: false,
-  }
-)
+/** @type {import('next').NextConfig} */
+const nextConfig = withRspack({
+  // Tu configuración de Next.js aquí
+})
+
+module.exports = nextConfig
 ```
 
 ## Configuration Options
@@ -71,7 +70,7 @@ module.exports = withRspack(
 
 ## Production Optimizations
 
-The plugin includes several production optimizations:
+The builder includes several production optimizations:
 
 - Code splitting and chunk optimization
 - Tree shaking
@@ -88,7 +87,7 @@ The plugin includes several production optimizations:
 
 ## TypeScript Support
 
-The plugin includes built-in TypeScript support. No additional configuration needed for basic TypeScript/TSX files.
+The builder includes built-in TypeScript support. No additional configuration needed for basic TypeScript/TSX files.
 
 ## Examples
 
@@ -96,20 +95,24 @@ The plugin includes built-in TypeScript support. No additional configuration nee
 
 ```javascript
 // next.config.js
-const withRspack = require('@ocl/rspack-builder')
+const { default: withRspack } = require('@dubstepqba/rspack-builder')
 
-module.exports = withRspack({
+/** @type {import('next').NextConfig} */
+const nextConfig = withRspack({
   // Next.js config
 })
+
+module.exports = nextConfig
 ```
 
 ### Advanced Configuration
 
 ```javascript
 // next.config.js
-const withRspack = require('@next/plugin-rspack')
+const { default: withRspack } = require('@dubstepqba/rspack-builder')
 
-module.exports = withRspack(
+/** @type {import('next').NextConfig} */
+const nextConfig = withRspack(
   {
     // Next.js config
   },
@@ -134,6 +137,8 @@ module.exports = withRspack(
     },
   }
 )
+
+module.exports = nextConfig
 ```
 
 ## Troubleshooting
@@ -153,10 +158,10 @@ module.exports = withRspack(
 
 ### Debug Mode
 
-Set `DEBUG=next-rspack:*` environment variable for detailed logging:
+Set `DEBUG=rspack-builder:*` environment variable for detailed logging:
 
 ```bash
-DEBUG=next-rspack:* next dev
+DEBUG=rspack-builder:* next dev
 ```
 
 ## Contributing
@@ -169,9 +174,9 @@ MIT
 
 ## Support
 
-- GitHub Issues: [Report a bug](https://github.com/DubstepQBA/ocl-rspack-builder/issues)
-- Linkedin :[Profile](https://www.linkedin.com/in/javieralfaroarmas/)
+- GitHub Issues: [Report a bug](https://github.com/DubstepQBA/rspack-builder/issues)
+- LinkedIn: [Javier Alfaro](https://www.linkedin.com/in/javieralfaroarmas/)
 
 ## Credits
 
-This plugin is built on top of [RSPack](https://www.rspack.dev/) and [Next.js](https://nextjs.org/).
+This builder is built on top of [RSPack](https://www.rspack.dev/) and [Next.js](https://nextjs.org/).

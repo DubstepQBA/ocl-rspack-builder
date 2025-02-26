@@ -1,4 +1,33 @@
-module.exports = function withRspack(config, options = {}) {
+import type { NextConfig } from 'next'
+import type { Configuration as RspackConfig } from '@rspack/core'
+
+export interface RspackPluginOptions {
+  enableReactRefresh?: boolean
+  optimizationLevel?: 'development' | 'production'
+  experimentalFeatures?: boolean
+  rspackConfig?: Partial<RspackConfig>
+  swcOptions?: {
+    jsc?: {
+      parser?: {
+        syntax?: 'typescript' | 'ecmascript'
+        tsx?: boolean
+      }
+      transform?: {
+        react?: {
+          runtime?: 'automatic' | 'classic'
+          development?: boolean
+          refresh?: boolean
+        }
+      }
+    }
+    minify?: boolean
+  }
+}
+
+export default function withRspack(
+  config: NextConfig = {},
+  options: RspackPluginOptions = {}
+): NextConfig {
   // Enable RSPack and required features
   process.env.NEXT_RSPACK = 'true'
   process.env.BUILTIN_FLIGHT_CLIENT_ENTRY_PLUGIN = 'true'
@@ -6,9 +35,11 @@ module.exports = function withRspack(config, options = {}) {
   process.env.BUILTIN_SWC_LOADER = 'true'
 
   // Add customizable options with enhanced defaults
-  const defaultOptions = {
+  const defaultOptions: RspackPluginOptions = {
     enableReactRefresh: true,
-    optimizationLevel: process.env.NODE_ENV || 'development',
+    optimizationLevel: (process.env.NODE_ENV === 'production' ? 'production' : 'development') as
+      | 'development'
+      | 'production',
     experimentalFeatures: false,
     rspackConfig: {},
     swcOptions: {
@@ -27,17 +58,9 @@ module.exports = function withRspack(config, options = {}) {
       },
       minify: process.env.NODE_ENV === 'production',
     },
-    performance: {
-      hints: process.env.NODE_ENV === 'production' ? 'warning' : false,
-    },
   }
 
   const finalOptions = { ...defaultOptions, ...options }
-
-  // Validate options
-  if (typeof finalOptions.enableReactRefresh !== 'boolean') {
-    throw new Error('enableReactRefresh must be a boolean')
-  }
 
   // Merge RSPack specific configurations
   return {
@@ -45,20 +68,24 @@ module.exports = function withRspack(config, options = {}) {
     webpack: undefined, // Disable webpack
     experimental: {
       ...config.experimental,
-      rspackExperimentalOptions: finalOptions.experimentalFeatures,
-      serverActions: true,
-      serverComponents: true,
+      serverActions: {
+        bodySizeLimit: '2mb',
+        allowedOrigins: ['*'],
+      },
     },
     // Enhanced RSPack configurations
     rspack: {
       ...finalOptions.rspackConfig,
       optimization: {
         minimize: process.env.NODE_ENV === 'production',
-        minimizer: process.env.NODE_ENV === 'production' ? [
-          {
-            pluginName: 'SwcMinifyPlugin',
-          },
-        ] : [],
+        minimizer:
+          process.env.NODE_ENV === 'production'
+            ? [
+                {
+                  pluginName: 'SwcMinifyPlugin',
+                },
+              ]
+            : [],
         splitChunks: {
           chunks: 'all',
           cacheGroups: {
@@ -91,7 +118,6 @@ module.exports = function withRspack(config, options = {}) {
           ...(finalOptions.rspackConfig?.module?.rules || []),
         ],
       },
-      performance: finalOptions.performance,
     },
   }
 }
