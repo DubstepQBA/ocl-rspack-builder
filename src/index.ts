@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next'
 import type { Configuration as RspackConfig } from '@rspack/core'
+import path from 'path'
 
 export interface RspackPluginOptions {
   enableReactRefresh?: boolean
@@ -80,6 +81,9 @@ export default function withRspack(
     ...config,
   }
 
+  // Get the original webpack config function if it exists
+  const originalWebpack = mergedConfig.webpack
+
   // Merge RSPack specific configurations
   return {
     ...mergedConfig,
@@ -91,8 +95,16 @@ export default function withRspack(
       },
     },
     // Enhanced RSPack configurations using webpack config
-    webpack: (config) => {
-      // Convert RSPack config to webpack config format
+    webpack: (config, context) => {
+      // Apply original webpack config if it exists
+      if (typeof originalWebpack === 'function') {
+        config = originalWebpack(config, context)
+      }
+
+      // Get absolute path for cache directory
+      const cacheDirectory = path.resolve(process.cwd(), '.next/cache/rspack')
+
+      // Add RSPack specific configurations
       return {
         ...config,
         cache: {
@@ -100,13 +112,14 @@ export default function withRspack(
           buildDependencies: {
             config: [__filename],
           },
-          cacheDirectory: '.next/cache/rspack',
+          cacheDirectory,
           compression: 'gzip',
           version: '1.0.0',
           store: 'pack',
           memoryCacheUnaffected: true,
         },
         optimization: {
+          ...config.optimization,
           minimize: process.env.NODE_ENV === 'production',
           minimizer:
             process.env.NODE_ENV === 'production'
@@ -134,7 +147,9 @@ export default function withRspack(
           ...finalOptions.rspackConfig?.optimization,
         },
         module: {
+          ...config.module,
           rules: [
+            ...(config.module?.rules || []),
             {
               test: /\.(js|jsx|ts|tsx)$/,
               exclude: /node_modules/,
