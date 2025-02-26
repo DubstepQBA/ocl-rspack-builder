@@ -56,9 +56,6 @@ export interface RspackPluginOptions {
   }
 }
 
-declare function withRspack(
-  config?: NextConfig,
-  options?: RspackPluginOptions
-): NextConfig
+declare function withRspack(config?: NextConfig, options?: RspackPluginOptions): NextConfig
 
-export default withRspack 
+export default withRspack
