@@ -1,7 +1,7 @@
 {
-  "name": "@ocl/plugin-rspack",
+  "name": "@ocl/rspack-builder",
   "version": "1.0.0",
-  "description": "Enhanced RSPack plugin for Next.js 14+",
+  "description": "Enhanced RSPack builder for Next.js 14+ applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -26,7 +26,8 @@
     "webpack",
     "bundler",
     "react",
-    "nextjs-plugin"
+    "nextjs-plugin",
+    "builder"
   ],
   "author": {
     "name": "Javier Alfaro de armas",
@@ -59,12 +60,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dubstepalfaro/next-rspack-plugin.git"
+    "url": "git+https://github.com/dubstepalfaro/rspack-builder.git"
   },
   "bugs": {
-    "url": "https://github.com/dubstepalfaro/next-rspack-plugin/issues"
+    "url": "https://github.com/dubstepalfaro/rspack-builder/issues"
   },
-  "homepage": "https://github.com/dubstepalfaro/next-rspack-plugin#readme",
+  "homepage": "https://github.com/dubstepalfaro/rspack-builder#readme",
   "publishConfig": {
     "access": "public"
   }

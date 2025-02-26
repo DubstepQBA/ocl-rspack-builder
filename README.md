@@ -15,11 +15,7 @@ An enhanced RSPack plugin for Next.js 14+ that provides improved build performan
 ## Installation
 
 ```bash
-npm install @next/plugin-rspack
-# or
-yarn add @next/plugin-rspack
-# or
-pnpm add @next/plugin-rspack
+npm install  @ocl/rspack-builder
 ```
 
 ## Usage
@@ -27,7 +23,7 @@ pnpm add @next/plugin-rspack
 In your `next.config.js`:
 
 ```javascript
-const withRspack = require("@next/plugin-rspack");
+const withRspack = require('@ocl/rspack-builder')
 
 module.exports = withRspack(
   {
@@ -36,10 +32,10 @@ module.exports = withRspack(
   {
     // RSPack plugin options (optional)
     enableReactRefresh: true,
-    optimizationLevel: "production",
+    optimizationLevel: 'production',
     experimentalFeatures: false,
   }
-);
+)
 ```
 
 ## Configuration Options
@@ -100,18 +96,18 @@ The plugin includes built-in TypeScript support. No additional configuration nee
 
 ```javascript
 // next.config.js
-const withRspack = require("@next/plugin-rspack");
+const withRspack = require('@ocl/rspack-builder')
 
 module.exports = withRspack({
   // Next.js config
-});
+})
 ```
 
 ### Advanced Configuration
 
 ```javascript
 // next.config.js
-const withRspack = require("@next/plugin-rspack");
+const withRspack = require('@next/plugin-rspack')
 
 module.exports = withRspack(
   {
@@ -123,21 +119,21 @@ module.exports = withRspack(
     rspackConfig: {
       optimization: {
         splitChunks: {
-          chunks: "all",
+          chunks: 'all',
         },
       },
       performance: {
-        hints: "warning",
+        hints: 'warning',
         maxEntrypointSize: 400000,
       },
     },
     swcOptions: {
       jsc: {
-        target: "es2020",
+        target: 'es2020',
       },
     },
   }
-);
+)
 ```
 
 ## Troubleshooting
@@ -173,8 +169,8 @@ MIT
 
 ## Support
 
-- GitHub Issues: [Report a bug](https://github.com/yourusername/next-rspack-plugin/issues)
-- Twitter: [@yourusername](https://twitter.com/yourusername)
+- GitHub Issues: [Report a bug](https://github.com/DubstepQBA/ocl-rspack-builder/issues)
+- Linkedin :[Profile](https://www.linkedin.com/in/javieralfaroarmas/)
 
 ## Credits
 
