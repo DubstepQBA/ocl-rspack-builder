@@ -104,6 +104,13 @@ export default function withRspack(
       // Get absolute path for cache directory
       const cacheDirectory = path.resolve(process.cwd(), '.next/cache/rspack')
 
+      // Create cache directory if it doesn't exist
+      try {
+        require('fs').mkdirSync(cacheDirectory, { recursive: true })
+      } catch (error) {
+        console.warn('Failed to create cache directory:', error)
+      }
+
       // Add RSPack specific configurations
       return {
         ...config,
@@ -125,7 +132,17 @@ export default function withRspack(
             process.env.NODE_ENV === 'production'
               ? [
                   {
-                    pluginName: 'SwcMinifyPlugin',
+                    apply: (compiler: any) => {
+                      // Use Next.js's built-in SWC minifier
+                      const TerserPlugin =
+                        require('next/dist/build/webpack/plugins/terser-webpack-plugin/src/index.js').default
+                      new TerserPlugin({
+                        terserOptions: {
+                          compress: true,
+                          mangle: true,
+                        },
+                      }).apply(compiler)
+                    },
                   },
                 ]
               : [],
@@ -155,8 +172,13 @@ export default function withRspack(
               exclude: /node_modules/,
               use: [
                 {
-                  loader: 'builtin:swc-loader',
-                  options: finalOptions.swcOptions,
+                  loader: 'next/dist/build/webpack/loaders/next-swc-loader',
+                  options: {
+                    ...finalOptions.swcOptions,
+                    isServer: context.isServer,
+                    hasReactRefresh: !context.isServer && finalOptions.enableReactRefresh,
+                    development: process.env.NODE_ENV !== 'production',
+                  },
                 },
               ],
             },
