@@ -1,6 +1,5 @@
 import type { NextConfig } from 'next'
 import type { Configuration as RspackConfig } from '@rspack/core'
-import type { Compiler } from 'webpack'
 import path from 'path'
 import fs from 'fs'
 
