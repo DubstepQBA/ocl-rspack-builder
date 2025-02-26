@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next'
 import type { Configuration as RspackConfig } from '@rspack/core'
+import type { Compiler } from 'webpack'
 import path from 'path'
+import fs from 'fs'
 
 export interface RspackPluginOptions {
   enableReactRefresh?: boolean
@@ -106,13 +108,13 @@ export default function withRspack(
 
       // Create cache directory if it doesn't exist
       try {
-        require('fs').mkdirSync(cacheDirectory, { recursive: true })
+        fs.mkdirSync(cacheDirectory, { recursive: true })
       } catch (error) {
         console.warn('Failed to create cache directory:', error)
       }
 
       // Add RSPack specific configurations
-      return {
+      const webpackConfig = {
         ...config,
         cache: {
           type: 'filesystem',
@@ -128,24 +130,7 @@ export default function withRspack(
         optimization: {
           ...config.optimization,
           minimize: process.env.NODE_ENV === 'production',
-          minimizer:
-            process.env.NODE_ENV === 'production'
-              ? [
-                  {
-                    apply: (compiler: any) => {
-                      // Use Next.js's built-in SWC minifier
-                      const TerserPlugin =
-                        require('next/dist/build/webpack/plugins/terser-webpack-plugin/src/index.js').default
-                      new TerserPlugin({
-                        terserOptions: {
-                          compress: true,
-                          mangle: true,
-                        },
-                      }).apply(compiler)
-                    },
-                  },
-                ]
-              : [],
+          minimizer: [],
           splitChunks: {
             chunks: 'all',
             cacheGroups: {
@@ -186,6 +171,14 @@ export default function withRspack(
           ],
         },
       }
+
+      // Add minifier in production
+      if (process.env.NODE_ENV === 'production') {
+        // Let Next.js handle minification
+        webpackConfig.optimization.minimize = true
+      }
+
+      return webpackConfig
     },
   }
 }
