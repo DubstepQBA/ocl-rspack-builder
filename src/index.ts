@@ -62,12 +62,32 @@ export default function withRspack(
 
   const finalOptions = { ...defaultOptions, ...options }
 
+  // Default Next.js configurations
+  const defaultNextConfig: NextConfig = {
+    poweredByHeader: false,
+    generateEtags: false,
+    serverRuntimeConfig: {
+      mySecret: process.env.MY_SECRET,
+    },
+    publicRuntimeConfig: {
+      staticFolder: '/static',
+    },
+    hostname: '0.0.0.0',
+    port: parseInt(process.env.PORT || '3000', 10),
+  }
+
+  // Merge configurations with user provided config
+  const mergedConfig = {
+    ...defaultNextConfig,
+    ...config,
+  }
+
   // Merge RSPack specific configurations
   return {
-    ...config,
+    ...mergedConfig,
     webpack: undefined, // Disable webpack
     experimental: {
-      ...config.experimental,
+      ...mergedConfig.experimental,
       serverActions: {
         bodySizeLimit: '2mb',
         allowedOrigins: ['*'],

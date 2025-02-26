@@ -11,6 +11,8 @@ An enhanced RSPack builder for Next.js 14+ that provides improved build performa
 - 🔧 Server Components & Actions support
 - 🎯 Production optimizations
 - 🔄 Hot Module Replacement
+- 🔒 Secure defaults
+- 🌐 Docker-ready configuration
 
 ## Installation
 
@@ -24,28 +26,67 @@ pnpm add @dubstepqba/rspack-builder
 
 ## Usage
 
-In your `next.config.js`:
+### Basic Usage (With Default Configuration)
 
 ```javascript
 const { default: withRspack } = require('@dubstepqba/rspack-builder')
 
 /** @type {import('next').NextConfig} */
-const nextConfig = withRspack({
-  // Tu configuración de Next.js aquí
-})
+const nextConfig = withRspack()
 
 module.exports = nextConfig
 ```
 
-## Configuration Options
+### Custom Configuration
 
-| Option                 | Type      | Default                | Description                         |
-| ---------------------- | --------- | ---------------------- | ----------------------------------- |
-| `enableReactRefresh`   | `boolean` | `true`                 | Enable/disable React Fast Refresh   |
-| `optimizationLevel`    | `string`  | `process.env.NODE_ENV` | Build optimization level            |
-| `experimentalFeatures` | `boolean` | `false`                | Enable experimental RSPack features |
-| `rspackConfig`         | `object`  | `{}`                   | Custom RSPack configuration         |
-| `swcOptions`           | `object`  | See below              | SWC compiler options                |
+```javascript
+const { default: withRspack } = require('@dubstepqba/rspack-builder')
+
+/** @type {import('next').NextConfig} */
+const nextConfig = withRspack(
+  {
+    // Override default Next.js configurations
+    port: 4000,
+    // Add your custom Next.js config
+  },
+  {
+    // RSPack specific options
+    enableReactRefresh: true,
+    experimentalFeatures: true,
+  }
+)
+
+module.exports = nextConfig
+```
+
+## Default Configurations
+
+### Next.js Default Config
+
+```javascript
+{
+  poweredByHeader: false,        // Removes X-Powered-By header
+  generateEtags: false,         // Disables ETag generation
+  serverRuntimeConfig: {
+    mySecret: process.env.MY_SECRET,
+  },
+  publicRuntimeConfig: {
+    staticFolder: '/static',
+  },
+  hostname: '0.0.0.0',          // Listen on all network interfaces
+  port: 3000,                   // Default port (can be overridden by PORT env variable)
+}
+```
+
+### RSPack Options
+
+| Option                 | Type      | Default           | Description                         |
+| ---------------------- | --------- | ----------------- | ----------------------------------- |
+| `enableReactRefresh`   | `boolean` | `true`            | Enable/disable React Fast Refresh   |
+| `optimizationLevel`    | `string`  | Based on NODE_ENV | Build optimization level            |
+| `experimentalFeatures` | `boolean` | `false`           | Enable experimental RSPack features |
+| `rspackConfig`         | `object`  | `{}`              | Custom RSPack configuration         |
+| `swcOptions`           | `object`  | See below         | SWC compiler options                |
 
 ### Default SWC Options
 
@@ -77,6 +118,8 @@ The builder includes several production optimizations:
 - Minification using SWC
 - Module federation support
 - Performance hints and budgets
+- Secure defaults (disabled powered-by header, etags)
+- Docker-ready network configuration
 
 ## Development Mode Features
 
@@ -84,62 +127,38 @@ The builder includes several production optimizations:
 - Enhanced error reporting
 - Source maps support
 - HMR optimization
+- Convenient development defaults
+
+## Docker Support
+
+The default configuration is Docker-ready with:
+
+- Listening on all network interfaces (`0.0.0.0`)
+- Configurable port via environment variable
+- Secure defaults for production
+
+Example Docker usage:
+
+```bash
+docker run -p 3000:3000 -e PORT=3000 your-next-app
+```
 
 ## TypeScript Support
 
-The builder includes built-in TypeScript support. No additional configuration needed for basic TypeScript/TSX files.
+The builder includes built-in TypeScript support with zero configuration needed for:
 
-## Examples
+- TypeScript/TSX files
+- Type checking
+- Path aliases
+- Declaration files
 
-### Basic Usage
+## Environment Variables
 
-```javascript
-// next.config.js
-const { default: withRspack } = require('@dubstepqba/rspack-builder')
+The following environment variables are supported:
 
-/** @type {import('next').NextConfig} */
-const nextConfig = withRspack({
-  // Next.js config
-})
-
-module.exports = nextConfig
-```
-
-### Advanced Configuration
-
-```javascript
-// next.config.js
-const { default: withRspack } = require('@dubstepqba/rspack-builder')
-
-/** @type {import('next').NextConfig} */
-const nextConfig = withRspack(
-  {
-    // Next.js config
-  },
-  {
-    enableReactRefresh: true,
-    experimentalFeatures: true,
-    rspackConfig: {
-      optimization: {
-        splitChunks: {
-          chunks: 'all',
-        },
-      },
-      performance: {
-        hints: 'warning',
-        maxEntrypointSize: 400000,
-      },
-    },
-    swcOptions: {
-      jsc: {
-        target: 'es2020',
-      },
-    },
-  }
-)
-
-module.exports = nextConfig
-```
+- `PORT`: Override default port (3000)
+- `NODE_ENV`: Determines optimization level
+- `MY_SECRET`: Server-side secret (via serverRuntimeConfig)
 
 ## Troubleshooting
 
