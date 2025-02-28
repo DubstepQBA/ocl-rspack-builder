@@ -1,15 +1,17 @@
 # Next.js RSPack Builder
 
-A lightweight RSPack builder for Next.js 14+ that provides optimized build performance with minimal configuration.
+A lightweight and optimized solution to integrate RSPack with Next.js 14+, focused on solving common build issues and improving performance in Docker/CI environments.
 
 ## Features
 
-- 🚀 Optimized build performance with RSPack
-- 🎯 Production-ready optimizations
+- 🚀 Memory and performance optimization with RSPack
+- 🎯 Configuration tailored for Docker and CI environments
 - 📦 Zero-config TypeScript support
-- 🛠 Simple and maintainable configuration
-- 🔄 Automatic chunk splitting
-- ⚡ Next.js native optimizations
+- 🛠 Resolution of common Next.js issues
+- 🔄 Optimized chunk splitting to reduce sizes
+- ⚡ Intelligent cache management
+- 🔧 Adjustments to prevent OOM (Out of Memory) in Docker
+- 🔒 Server Actions optimization for stability
 
 ## Installation
 
@@ -34,7 +36,7 @@ const nextConfig = withRspack()
 module.exports = nextConfig
 ```
 
-### Custom Configuration
+### Optimized Configuration for Docker/CI
 
 ```javascript
 const { default: withRspack } = require('@dubstepqba/rspack-builder')
@@ -45,105 +47,26 @@ const nextConfig = withRspack(
     // Your Next.js config
   },
   {
-    rspackConfig: {
-      // RSPack specific options
-      optimization: {
-        minimize: true,
-        minimizer: ['...'],
-        splitChunks: {
-          chunks: 'all',
-          minSize: 20000,
-          maxSize: 0,
-          minChunks: 1,
-          maxAsyncRequests: 30,
-          maxInitialRequests: 30,
-          cacheGroups: {
-            defaultVendors: {
-              test: /[\\/]node_modules[\\/]/,
-              priority: -10,
-              reuseExistingChunk: true,
-            },
-            default: {
-              minChunks: 2,
-              priority: -20,
-              reuseExistingChunk: true,
-            },
-          },
-        },
-      },
-      performance: {
-        maxAssetSize: 250000,
-        maxEntrypointSize: 250000,
-        hints: 'warning',
-      },
-      cache: {
-        type: 'filesystem',
-        buildDependencies: {
-          config: ['./next.config.js'],
-        },
-        name: 'development-cache',
-      },
-      experiments: {
-        asyncWebAssembly: true,
-        layers: true,
-      },
+    // Options for Docker/CI - prevents OOM errors
+    memoryOptions: {
+      maxMemory: 1536, // Memory limit in MB to prevent OOM
+      maxWorkers: 2, // Limit workers to reduce memory usage
     },
-  }
-)
-
-module.exports = nextConfig
-```
-
-### Optimized Configuration Example
-
-```javascript
-const { default: withRspack } = require('@dubstepqba/rspack-builder')
-
-/** @type {import('next').NextConfig} */
-const nextConfig = withRspack(
-  {
-    // Next.js config
-    poweredByHeader: false,
-    compress: true,
-  },
-  {
+    // Cache options - improves build speed
+    cacheOptions: {
+      enableFilesystemCache: true,
+      compression: true,
+    },
+    // CI optimizations
+    ciOptions: {
+      disableTelemetry: true,
+      disableSourceMapsInProduction: true,
+    },
+    // RSPack options - webpack optimization
     rspackConfig: {
       optimization: {
-        // Habilitar minificación en producción
         minimize: process.env.NODE_ENV === 'production',
-        // Configuración de división de chunks optimizada
-        splitChunks: {
-          chunks: 'all',
-          minSize: 20000,
-          maxSize: 100000,
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-              priority: 10,
-              reuseExistingChunk: true,
-            },
-          },
-        },
-        // Reducir el tamaño del bundle
-        removeAvailableModules: true,
-        removeEmptyChunks: true,
-        mergeDuplicateChunks: true,
-      },
-      performance: {
-        // Optimizar tamaños de assets
-        maxAssetSize: 250000,
-        maxEntrypointSize: 250000,
-        hints: process.env.NODE_ENV === 'production' ? 'warning' : false,
-      },
-      cache: {
-        // Habilitar caché para builds más rápidos
-        type: 'filesystem',
-        buildDependencies: {
-          config: [__filename],
-        },
-        compression: 'gzip',
+        // More optimization configurations...
       },
     },
   }
@@ -152,37 +75,60 @@ const nextConfig = withRspack(
 module.exports = nextConfig
 ```
 
-### Explicación de la Configuración Optimizada
+### Optimized Configuration Explanation
 
-1. **Optimización de Chunks**:
+1. **Memory optimization for Docker/CI**:
 
-   - `splitChunks.chunks: 'all'`: Divide todos los chunks para mejor caching
-   - `minSize/maxSize`: Controla el tamaño de los chunks para mejor rendimiento
-   - `cacheGroups`: Agrupa módulos de node_modules en un chunk separado
+   - Limits maximum memory to prevent OOM errors
+   - Reduces the number of workers for stability
+   - Disables unnecessary memory-consuming features
 
-2. **Optimización de Tamaño**:
+2. **Intelligent cache management**:
 
-   - `minimize`: Minificación automática en producción
-   - `removeAvailableModules`: Elimina módulos innecesarios
-   - `removeEmptyChunks`: Elimina chunks vacíos
-   - `mergeDuplicateChunks`: Combina chunks duplicados
+   - Filesystem cache with compression
+   - Automatic creation of cache directories
+   - Environment-optimized cache names
 
-3. **Caché**:
+3. **CI optimizations**:
 
-   - `type: 'filesystem'`: Caché persistente para builds más rápidos
-   - `compression: 'gzip'`: Compresión de caché para ahorrar espacio
+   - Disables telemetry for faster builds
+   - Removes source maps in production to reduce memory
+   - Specific configurations for Docker environments
 
-4. **Performance**:
-   - Límites de tamaño optimizados para assets
-   - Advertencias solo en producción
+4. **RSPack/Webpack optimization**:
+   - Optimized chunk splitting
+   - Removal of empty and duplicate chunks
+   - Intelligent grouping of node_modules
 
 ## Configuration Options
 
+### Memory Options
+
+| Option                     | Type     | Default                | Description               |
+| -------------------------- | -------- | ---------------------- | ------------------------- |
+| `memoryOptions.maxMemory`  | `number` | `2048`                 | Memory limit in MB        |
+| `memoryOptions.maxWorkers` | `number` | `4` (local) / `2` (CI) | Maximum number of workers |
+
+### Cache Options
+
+| Option                               | Type      | Default              | Description             |
+| ------------------------------------ | --------- | -------------------- | ----------------------- |
+| `cacheOptions.enableFilesystemCache` | `boolean` | `true`               | Enable filesystem cache |
+| `cacheOptions.cacheDirectory`        | `string`  | `.next/cache/rspack` | Directory for cache     |
+| `cacheOptions.compression`           | `boolean` | `true`               | Compress cache files    |
+
+### CI Options
+
+| Option                                    | Type      | Default        | Description                       |
+| ----------------------------------------- | --------- | -------------- | --------------------------------- |
+| `ciOptions.disableTelemetry`              | `boolean` | `true` (in CI) | Disable telemetry                 |
+| `ciOptions.disableSourceMapsInProduction` | `boolean` | `true`         | Disable source maps in production |
+
 ### RSPack Options
 
-| Option         | Type     | Default | Description                 |
-| -------------- | -------- | ------- | --------------------------- |
-| `rspackConfig` | `object` | `{}`    | Custom RSPack configuration |
+| Option         | Type     | Default | Description                         |
+| -------------- | -------- | ------- | ----------------------------------- |
+| `rspackConfig` | `object` | `{}`    | Custom RSPack/webpack configuration |
 
 ## RSPack Configuration Options
 
@@ -227,7 +173,7 @@ rspackConfig: {
   module: {
     rules: [
       {
-        test: /\.custom$/, // Regex para archivos
+        test: /\.custom$/, // File regex
         use: ['custom-loader'],
         exclude: /node_modules/,
       },
@@ -246,7 +192,7 @@ rspackConfig: {
       '@components': './src/components',
     },
     fallback: {
-      // Polyfills para módulos de Node
+      // Polyfills for Node modules
       "path": require.resolve("path-browserify"),
     },
   },
@@ -268,6 +214,47 @@ rspackConfig: {
 }
 ```
 
+## Solutions to Common Next.js Issues
+
+This plugin automatically resolves several common issues that occur during Next.js builds:
+
+1. **"Out of Memory" errors in Docker/CI**
+
+   - Automatically limits memory and workers
+   - Optimizes cache to reduce recalculations
+
+2. **Server Actions errors**
+
+   - Configures appropriate limits for payloads
+   - Improves server actions stability
+
+3. **"from argument must be of type string" problems**
+
+   - Resolves relative path issues in loaders
+
+4. **Slow builds**
+
+   - Optimized filesystem cache
+   - Intelligent chunk configuration
+   - Reduction of duplicate work
+
+5. **Minification errors**
+   - Robust configuration for production optimizations
+   - Automatic fallbacks for minifiers
+
+## Docker Compatibility
+
+The plugin is specially optimized for Docker environments:
+
+```Dockerfile
+FROM node:18-alpine AS base
+# ... standard Docker configuration
+ENV DOCKER=true
+# This variable activates special optimizations for Docker
+
+# ... rest of Dockerfile
+```
+
 ## Production Optimizations
 
 The builder includes essential production optimizations:
@@ -275,7 +262,9 @@ The builder includes essential production optimizations:
 - Automatic code splitting
 - Production minification
 - Chunk optimization
-- Next.js native optimizations
+- Filesystem cache with compression
+- Memory optimization
+- Server Actions stabilization
 
 ## Development Mode
 
@@ -284,12 +273,16 @@ Development mode includes:
 - Fast Refresh support
 - Source maps
 - Development optimizations
+- Memory usage monitoring
 
 ## Environment Variables
 
 The following environment variables are supported:
 
 - `NODE_ENV`: Determines optimization level
+- `CI=true`: Activates optimizations for CI environments
+- `DOCKER=true`: Activates optimizations for Docker
+- `NEXT_TELEMETRY_DISABLED`: Automatically set in CI
 - Standard Next.js environment variables
 
 ## Troubleshooting
@@ -300,10 +293,17 @@ The following environment variables are supported:
 
    - Ensure you're using the latest version
    - Check your Node.js version (>=16.0.0 required)
+   - Adjust memoryOptions based on your environment
 
 2. **Docker Builds**
-   - The builder is optimized for Docker environments
-   - Uses minimal configuration to prevent memory issues
+
+   - Set `DOCKER=true` environment variable
+   - Adjust memory limits based on container constraints
+   - Consider reducing maxWorkers for stability
+
+3. **Server Actions Errors**
+   - Adjust bodySizeLimit if working with large payloads
+   - Check allowedOrigins configuration
 
 ## Contributing
 
@@ -315,7 +315,7 @@ MIT
 
 ## Support
 
-- GitHub Issues: [Report a bug](https://github.com/DubstepQBA/ocl-rspack-builder/issues)
+- GitHub Issues: [Report a bug](https://github.com/DubstepQBA/rspack-builder/issues)
 - Author: [Javier Alfaro](https://github.com/DubstepQBA)
 
 ## Credits

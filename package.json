@@ -1,6 +1,6 @@
 {
   "name": "@dubstepqba/rspack-builder",
-  "version": "1.1.10",
+  "version": "2.0.0",
   "description": "Enhanced RSPack builder for Next.js 14+ applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
